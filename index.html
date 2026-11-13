@@ -1,542 +1,278 @@
-<!DOCTYPE html>
-<html lang="bn" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>রিয়াদুল ফেরদৌস জিহাদ | পোর্টফোলিও</title>
-    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
-    <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
-    
-    <!-- Google Fonts for Bengali & English -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        :root {
-            --bg-primary: #f5f8ff; /* Light, clean background */
-            --glass-bg: rgba(255, 255, 255, 0.75); /* Clean white glass */
-            --glass-border: rgba(0, 0, 0, 0.05); /* Very subtle border */
-            --accent-primary: #6c5ce7; /* Modern blue-violet */
-            --accent-secondary: #ff8e3c; /* Complementary orange */
-            --accent-glow: rgba(108, 92, 231, 0.35); /* Soft violet glow */
-            --text-main: #2d3436; /* Dark gray for main text */
-            --text-muted: #636e72; /* Muted gray for description */
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
-            line-height: 1.6;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Ambient Background Glows */
-        .glow-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: -1;
-            pointer-events: none;
-        }
-        .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: rgba(108, 92, 231, 0.15);
-            top: -100px;
-            left: -100px;
-        }
-        .orb-2 {
-            width: 450px;
-            height: 450px;
-            background: rgba(255, 142, 60, 0.12);
-            bottom: 10%;
-            right: -120px;
-        }
-
-        /* Glassmorphism Utility */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(108, 92, 231, 0.35);
-            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1140px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 48px);
-            max-width: 1100px;
-            z-index: 1000;
-            padding: 14px 28px;
-            border-radius: 100px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-weight: 800;
-            font-size: 1.25rem;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, var(--text-main) 30%, var(--accent-primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 28px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.92rem;
-            font-weight: 500;
-            transition: color 0.25s;
-        }
-
-        .nav-links a:hover {
-            color: var(--text-main);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: #fff;
-            padding: 10px 22px;
-            border-radius: 100px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 20px var(--accent-glow);
-            transition: opacity 0.25s, transform 0.2s;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.92;
-            transform: scale(1.02);
-        }
-
-        .btn-outline {
-            background: rgba(108, 92, 231, 0.04);
-            color: var(--accent-primary);
-            padding: 10px 22px;
-            border-radius: 100px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(108, 92, 231, 0.25);
-            transition: background 0.25s;
-        }
-
-        .btn-outline:hover {
-            background: rgba(108, 92, 231, 0.1);
-        }
-
-        /* Hero Section */
-        .hero {
-            padding: 160px 0 90px;
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            align-items: center;
-            gap: 48px;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 100px;
-            background: rgba(108, 92, 231, 0.1);
-            border: 1px solid rgba(108, 92, 231, 0.2);
-            color: var(--accent-primary);
-            font-size: 0.82rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.3rem, 4.5vw, 3.6rem);
-            font-weight: 800;
-            line-height: 1.15;
-            margin-bottom: 18px;
-            letter-spacing: -1px;
-            color: var(--text-main);
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            color: var(--text-muted);
-            font-size: 1.08rem;
-            margin-bottom: 32px;
-            max-width: 560px;
-        }
-
-        .hero-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-
-        .hero-image-wrapper {
-            position: relative;
-            display: flex;
-            justify-content: center;
-        }
-
-        .hero-image-frame {
-            width: 320px;
-            height: 360px;
-            border-radius: 28px;
-            overflow: hidden;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-
-        .hero-image-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Section Common */
-        section {
-            padding: 80px 0;
-        }
-
-        .section-header {
-            margin-bottom: 48px;
-        }
-
-        .section-header span {
-            color: var(--accent-primary);
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .section-header h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-top: 6px;
-            color: var(--text-main);
-        }
-
-        /* Bento Grid */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .bento-item {
-            padding: 28px;
-        }
-
-        .bento-wide {
-            grid-column: span 2;
-        }
-
-        .bento-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: rgba(108, 92, 231, 0.14);
-            color: var(--accent-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 18px;
-        }
-
-        .bento-item h3 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: var(--text-main);
-        }
-
-        .bento-item p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        /* Support Grid */
-        .support-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .support-card {
-            padding: 24px;
-            text-align: center;
-            border-radius: 16px;
-            background: var(--accent-primary);
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .support-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.4);
-        }
-
-        .support-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 18px;
-        }
-
-        .support-card h4 {
-            font-size: 1.1rem;
-            margin-bottom: 6px;
-        }
-
-        .support-card p {
-            font-size: 0.88rem;
-            opacity: 0.9;
-        }
-
-        /* Social Row */
-        .social-row {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 28px;
-        }
-
-        .social-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(108, 92, 231, 0.05);
-            border: 1px solid rgba(108, 92, 231, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent-primary);
-            text-decoration: none;
-            transition: all 0.25s;
-        }
-
-        .social-btn:hover {
-            background: var(--accent-primary);
-            color: #fff;
-            transform: translateY(-3px);
-        }
-
-        footer {
-            text-align: center;
-            padding: 32px 0;
-            border-top: 1px solid var(--glass-border);
-            color: var(--text-muted);
-            font-size: 0.88rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 860px) {
-            .hero {
-                grid-template-columns: 1fr;
-                text-align: center;
-                padding-top: 130px;
-            }
-            .hero p {
-                margin-left: auto;
-                margin-right: auto;
-            }
-            .hero-actions {
-                justify-content: center;
-            }
-            .bento-grid, .support-grid {
-                grid-template-columns: 1fr;
-            }
-            .bento-wide {
-                grid-column: span 1;
-            }
-            .nav-links {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Ambient Orbs -->
-    <div class="glow-orb orb-1"></div>
-    <div class="glow-orb orb-2"></div>
-
-    <!-- Floating Navbar -->
-    <nav>
-        <a href="#" class="logo">JIHAD<span style="color:var(--accent-primary);">.</span></a>
-        <ul class="nav-links">
-            <li><a href="#about">পরিচিতি</a></li>
-            <li><a href="#support">সাপোর্ট</a></li>
-            <li><a href="#contact">যোগাযোগ</a></li>
-        </ul>
-        <a href="#contact" class="btn-primary">কথা বলুন</a>
-    </nav>
-
-    <main class="container">
-        <!-- Hero Section -->
-        <section class="hero">
-            <div>
-                <div class="badge">
-                    <i data-lucide="sparkles" size="14"></i>
-                    <span>স্বাগতম আমার ব্যক্তিগত সাইটে</span>
-                </div>
-                <h1>হ্যালো, আমি <br><span class="gradient-text">রিয়াদুল ফেরদৌস জিহাদ</span></h1>
-                <p>
-                    আমি একজন ওয়েব ডেভেলপার এবং আইটি উৎসাহী। আধুনিক ও রেসপন্সিভ ওয়েব অ্যাপ্লিকেশন তৈরি এবং ডিজিটাল সল্যুশন নিয়ে কাজ করতে ভালোবাসি।
-                </p>
-                <div class="hero-actions">
-                    <a href="#contact" class="btn-primary">
-                        <span>আমার কাজ দেখুন</span>
-                        <i data-lucide="arrow-right" size="16"></i>
-                    </a>
-                </div>
-            </div>
-
-            <div class="hero-image-wrapper">
-                <div class="hero-image-frame">
-                    <!-- আপনার ছবিটি রিপোজিটরিতে থাকলে স্বয়ংক্রিয়ভাবে লোড হবে -->
-                    <img src="assets/images/profile-portrait.jpg" onerror="this.src='assets/images/profile-avatar.jpg'" alt="Riadul Ferdous Jihad">
-                </div>
-            </div>
-        </section>
-
-        <!-- About & Support Grid -->
-        <section id="about">
-            <div class="section-header">
-                <span>পরিচিতি</span>
-                <h2>আমার সম্পর্কে কিছু তথ্য</h2>
-            </div>
-            <div class="bento-grid">
-                <div class="glass-card bento-item bento-wide">
-                    <div class="bento-icon"><i data-lucide="user"></i></div>
-                    <h3>সংক্ষিপ্ত বিবরণ</h3>
-                    <p>
-                        কুষ্টিয়া, বাংলাদেশে বসবাসরত একজন প্রযুক্তিপ্রেমী তরুণ। মাধ্যমিক শেষ করে কম্পিউটার ভোকেশনাল ট্রেডে পড়াশোনা করার পাশাপাশি ওয়েব ডেভেলপমেন্ট, ডেটা ম্যানেজমেন্ট এবং নেটওয়ার্ক কনফিগারেশন নিয়ে নিয়মিত কাজ করছি।
-                    </p>
-                </div>
-
-                <div class="glass-card bento-item">
-                    <div class="bento-icon"><i data-lucide="code-2"></i></div>
-                    <h3>দক্ষতা</h3>
-                    <p>HTML5, CSS3, JavaScript, Git & GitHub</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Support Section - Professional Support Cards -->
-        <section id="support">
-            <div class="section-header">
-                <span>যোগাযোগ</span>
-                <h2>প্রফেশনাল সাপোর্ট মাধ্যম</h2>
-            </div>
-            <div class="support-grid">
-                <button class="support-card" onclick="location.href='https://t.me/yourusername'">
-                    <div class="support-icon"><i data-lucide="telegram" size="24"></i></div>
-                    <h4>Telegram</h4>
-                    <p>ব্যক্তিগত সাপোর্ট</p>
-                </button>
-                <button class="support-card" style="background: var(--accent-secondary);" onclick="location.href='https://t.me/yourgroup'">
-                    <div class="support-icon"><i data-lucide="users" size="24"></i></div>
-                    <h4>Telegram Group</h4>
-                    <p>গ্রুপে কথা বলুন</p>
-                </button>
-                <button class="support-card" onclick="location.href='https://wa.me/yournumber'">
-                    <div class="support-icon"><i data-lucide="message-square" size="24"></i></div>
-                    <h4>WhatsApp</h4>
-                    <p>সরাসরি চ্যাট করুন</p>
-                </button>
-            </div>
-        </section>
-
-        <!-- Contact Section -->
-        <section id="contact">
-            <div class="glass-card contact-box social-row">
-                <a href="https://github.com/JihaD123007" target="_blank" class="social-btn" title="GitHub">
-                    <i data-lucide="github" size="20"></i>
-                </a>
-                <a href="#" target="_blank" class="social-btn" title="Facebook">
-                    <i data-lucide="facebook" size="20"></i>
-                </a>
-                <a href="#" target="_blank" class="social-btn" title="LinkedIn">
-                    <i data-lucide="linkedin" size="20"></i>
-                </a>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; ২০২৬ রিয়াদুল ফেরদৌস জিহাদ (Riadul Ferdous Jihad). সর্বস্বত্ব সংরক্ষিত।</p>
+<!-- START: Ultra-Modern Social Media Section -->
+<section id="social-media-section" class="social-section">
+    <div class="social-container">
+        <!-- Section Header -->
+        <div class="social-header">
+            <span class="social-subtitle-tag">CONNECT WITH ME</span>
+            <h2>সোসাল মিডিয়ায় যুক্ত হোন</h2>
+            <p>আমার অনলাইন প্রফাইলগুলো ভিজিট করুন এবং সরাসরি যোগাযোগ করুন।</p>
         </div>
-    </footer>
 
-    <script>
-        // Initialize Lucide Icons
+        <!-- Social Cards Grid -->
+        <div class="social-grid">
+            
+            <!-- Facebook Card -->
+            <div class="social-card facebook-card" onclick="openSocialLink('facebook')">
+                <div class="card-glow"></div>
+                <div class="card-content">
+                    <div class="icon-box">
+                        <i data-lucide="facebook"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Facebook</h3>
+                        <p>Follow Me on Facebook</p>
+                    </div>
+                    <button class="social-btn">
+                        <span>Visit Profile</span>
+                        <i data-lucide="arrow-right" size="16"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TikTok Card -->
+            <div class="social-card tiktok-card" onclick="openSocialLink('tiktok')">
+                <div class="card-glow"></div>
+                <div class="card-content">
+                    <div class="icon-box">
+                        <i data-lucide="video"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>TikTok</h3>
+                        <p>Follow Me on TikTok</p>
+                    </div>
+                    <button class="social-btn">
+                        <span>Watch Videos</span>
+                        <i data-lucide="arrow-right" size="16"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- WhatsApp Card -->
+            <div class="social-card whatsapp-card" onclick="openSocialLink('whatsapp')">
+                <div class="card-glow"></div>
+                <div class="card-content">
+                    <div class="icon-box">
+                        <i data-lucide="message-circle"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>WhatsApp</h3>
+                        <p>Let's Connect on WhatsApp</p>
+                    </div>
+                    <button class="social-btn">
+                        <span>Message Me</span>
+                        <i data-lucide="arrow-right" size="16"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Lucide Icons CDN (if not already loaded) -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+    /* Social Media Section Styles */
+    .social-section {
+        padding: 90px 20px;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+    }
+
+    .social-container {
+        max-width: 1140px;
+        margin: 0 auto;
+    }
+
+    .social-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .social-subtitle-tag {
+        color: #a855f7;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: inline-block;
+        margin-bottom: 10px;
+        padding: 6px 16px;
+        background: rgba(168, 85, 247, 0.1);
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        border-radius: 50px;
+    }
+
+    .social-header h2 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+    }
+
+    .social-header p {
+        color: #94a3b8;
+        font-size: 1rem;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    /* Grid Layout */
+    .social-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    /* Premium Card Design */
+    .social-card {
+        position: relative;
+        background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        border-radius: 24px;
+        padding: 32px 24px;
+        cursor: pointer;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Neon Purple Glow Effect behind cards */
+    .card-glow {
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, rgba(0,0,0,0) 70%);
+        border-radius: 50%;
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .social-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: rgba(168, 85, 247, 0.6);
+        box-shadow: 0 25px 50px -10px rgba(168, 85, 247, 0.25), 0 0 30px rgba(168, 85, 247, 0.2);
+    }
+
+    .social-card:hover .card-glow {
+        opacity: 1;
+    }
+
+    .card-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        height: 100%;
+    }
+
+    /* Floating Icon Box */
+    .icon-box {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.5);
+        animation: floatIcon 3s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    .card-info h3 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 6px;
+    }
+
+    .card-info p {
+        color: #94a3b8;
+        font-size: 0.92rem;
+        margin-bottom: 28px;
+    }
+
+    /* Action Button */
+    .social-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: auto;
+    }
+
+    .social-card:hover .social-btn {
+        background: #a855f7;
+        color: #fff;
+        border-color: #a855f7;
+        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        gap: 12px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .social-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 680px) {
+        .social-grid {
+            grid-template-columns: 1fr;
+        }
+        .social-section {
+            padding: 60px 16px;
+        }
+        .social-header h2 {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<script>
+    // SINGLE CONFIGURATION SECTION FOR SOCIAL LINKS
+    // সহজে এইখান থেকে লিংক পরিবর্তন করতে পারবেন
+    const socialLinksConfig = {
+        facebook: "https://www.facebook.com/yourprofile", // আপনার ফেসবুক প্রোফাইল লিংক দিন
+        tiktok: "https://www.tiktok.com/@yourprofile",     // আপনার টিকটক প্রফাইল লিংক দিন
+        whatsapp: "https://wa.me/8801700000000"             // আপনার হোয়াটসঅ্যাপ নম্বর বা লিংক দিন
+    };
+
+    // Function to handle safe external redirection
+    function openSocialLink(platform) {
+        const url = socialLinksConfig[platform];
+        if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    // Initialize Lucide Icons for this section
+    if (typeof lucide !== 'undefined') {
         lucide.createIcons();
-    </script>
-</body>
-    </html>
-    
+    }
+</script>
+<!-- END: Ultra-Modern Social Media Section -->
