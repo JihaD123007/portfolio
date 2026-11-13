@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riadul Ferdous Jihad | Portfolio</title>
+    <title>রিয়াদুল ফেরদৌস জিহাদ | পোর্টফোলিও</title>
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
     <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts for Bengali & English -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,15 +17,14 @@
 
     <style>
         :root {
-            --bg-primary: #07090e;
-            --bg-secondary: #0f131f;
-            --glass-bg: rgba(20, 26, 42, 0.55);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --accent-primary: #3b82f6;
-            --accent-secondary: #8b5cf6;
-            --accent-glow: rgba(59, 130, 246, 0.35);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-primary: #f5f8ff; /* Light, clean background */
+            --glass-bg: rgba(255, 255, 255, 0.75); /* Clean white glass */
+            --glass-border: rgba(0, 0, 0, 0.05); /* Very subtle border */
+            --accent-primary: #6c5ce7; /* Modern blue-violet */
+            --accent-secondary: #ff8e3c; /* Complementary orange */
+            --accent-glow: rgba(108, 92, 231, 0.35); /* Soft violet glow */
+            --text-main: #2d3436; /* Dark gray for main text */
+            --text-muted: #636e72; /* Muted gray for description */
         }
 
         * {
@@ -54,14 +53,14 @@
         .orb-1 {
             width: 400px;
             height: 400px;
-            background: rgba(59, 130, 246, 0.15);
+            background: rgba(108, 92, 231, 0.15);
             top: -100px;
             left: -100px;
         }
         .orb-2 {
             width: 450px;
             height: 450px;
-            background: rgba(139, 92, 246, 0.12);
+            background: rgba(255, 142, 60, 0.12);
             bottom: 10%;
             right: -120px;
         }
@@ -78,8 +77,8 @@
 
         .glass-card:hover {
             transform: translateY(-4px);
-            border-color: rgba(59, 130, 246, 0.35);
-            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+            border-color: rgba(108, 92, 231, 0.35);
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.2);
         }
 
         /* Container */
@@ -100,7 +99,7 @@
             z-index: 1000;
             padding: 14px 28px;
             border-radius: 100px;
-            background: rgba(15, 19, 31, 0.75);
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             display: flex;
@@ -112,7 +111,7 @@
             font-weight: 800;
             font-size: 1.25rem;
             letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #fff 30%, #60a5fa 100%);
+            background: linear-gradient(135deg, var(--text-main) 30%, var(--accent-primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-decoration: none;
@@ -133,7 +132,7 @@
         }
 
         .nav-links a:hover {
-            color: #fff;
+            color: var(--text-main);
         }
 
         .btn-primary {
@@ -159,8 +158,8 @@
         }
 
         .btn-outline {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-main);
+            background: rgba(108, 92, 231, 0.04);
+            color: var(--accent-primary);
             padding: 10px 22px;
             border-radius: 100px;
             font-size: 0.9rem;
@@ -169,12 +168,12 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(108, 92, 231, 0.25);
             transition: background 0.25s;
         }
 
         .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(108, 92, 231, 0.1);
         }
 
         /* Hero Section */
@@ -192,9 +191,9 @@
             gap: 8px;
             padding: 6px 14px;
             border-radius: 100px;
-            background: rgba(59, 130, 246, 0.12);
-            border: 1px solid rgba(59, 130, 246, 0.25);
-            color: #60a5fa;
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            color: var(--accent-primary);
             font-size: 0.82rem;
             font-weight: 600;
             margin-bottom: 20px;
@@ -206,10 +205,11 @@
             line-height: 1.15;
             margin-bottom: 18px;
             letter-spacing: -1px;
+            color: var(--text-main);
         }
 
         .gradient-text {
-            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -238,8 +238,8 @@
             height: 360px;
             border-radius: 28px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
             position: relative;
         }
 
@@ -259,7 +259,7 @@
         }
 
         .section-header span {
-            color: #60a5fa;
+            color: var(--accent-primary);
             font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -270,9 +270,10 @@
             font-size: 2rem;
             font-weight: 700;
             margin-top: 6px;
+            color: var(--text-main);
         }
 
-        /* About & Bento Grid */
+        /* Bento Grid */
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -291,8 +292,8 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background: rgba(59, 130, 246, 0.14);
-            color: #60a5fa;
+            background: rgba(108, 92, 231, 0.14);
+            color: var(--accent-primary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -302,6 +303,7 @@
         .bento-item h3 {
             font-size: 1.2rem;
             margin-bottom: 10px;
+            color: var(--text-main);
         }
 
         .bento-item p {
@@ -309,83 +311,52 @@
             font-size: 0.95rem;
         }
 
-        /* Skills Tags */
-        .skills-wrap {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        .skill-tag {
-            padding: 6px 14px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            font-size: 0.85rem;
-            color: #cbd5e1;
-        }
-
-        /* Projects Grid */
-        .projects-grid {
+        /* Support Grid */
+        .support-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
         }
 
-        .project-card {
-            padding: 28px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .project-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .project-links a {
-            color: var(--text-muted);
-            margin-left: 12px;
-            transition: color 0.2s;
-        }
-
-        .project-links a:hover {
-            color: #fff;
-        }
-
-        .project-card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 10px;
-        }
-
-        .project-card p {
-            color: var(--text-muted);
-            font-size: 0.94rem;
-            margin-bottom: 20px;
-        }
-
-        /* Contact Card */
-        .contact-box {
-            padding: 48px;
+        .support-card {
+            padding: 24px;
             text-align: center;
-            max-width: 720px;
-            margin: 0 auto;
+            border-radius: 16px;
+            background: var(--accent-primary);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .contact-box h2 {
-            font-size: 2rem;
-            margin-bottom: 14px;
+        .support-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.4);
         }
 
-        .contact-box p {
-            color: var(--text-muted);
-            margin-bottom: 28px;
+        .support-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
         }
 
+        .support-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+
+        .support-card p {
+            font-size: 0.88rem;
+            opacity: 0.9;
+        }
+
+        /* Social Row */
         .social-row {
             display: flex;
             justify-content: center;
@@ -397,19 +368,19 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
+            background: rgba(108, 92, 231, 0.05);
+            border: 1px solid rgba(108, 92, 231, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-main);
+            color: var(--accent-primary);
             text-decoration: none;
             transition: all 0.25s;
         }
 
         .social-btn:hover {
             background: var(--accent-primary);
-            border-color: var(--accent-primary);
+            color: #fff;
             transform: translateY(-3px);
         }
 
@@ -435,7 +406,7 @@
             .hero-actions {
                 justify-content: center;
             }
-            .bento-grid {
+            .bento-grid, .support-grid {
                 grid-template-columns: 1fr;
             }
             .bento-wide {
@@ -455,12 +426,11 @@
 
     <!-- Floating Navbar -->
     <nav>
-        <a href="#" class="logo">JIHAD<span style="color:#60a5fa;">.</span></a>
+        <a href="#" class="logo">JIHAD<span style="color:var(--accent-primary);">.</span></a>
         <ul class="nav-links">
-            <li><a href="#about">সম্পর্কে (About)</a></li>
-            <li><a href="#skills">দক্ষতা (Skills)</a></li>
-            <li><a href="#projects">প্রজেক্টস (Projects)</a></li>
-            <li><a href="#contact">যোগাযোগ (Contact)</a></li>
+            <li><a href="#about">পরিচিতি</a></li>
+            <li><a href="#support">সাপোর্ট</a></li>
+            <li><a href="#contact">যোগাযোগ</a></li>
         </ul>
         <a href="#contact" class="btn-primary">কথা বলুন</a>
     </nav>
@@ -471,33 +441,29 @@
             <div>
                 <div class="badge">
                     <i data-lucide="sparkles" size="14"></i>
-                    <span>স্বাগতম আমার পোর্টফোলিওতে</span>
+                    <span>স্বাগতম আমার ব্যক্তিগত সাইটে</span>
                 </div>
                 <h1>হ্যালো, আমি <br><span class="gradient-text">রিয়াদুল ফেরদৌস জিহাদ</span></h1>
                 <p>
-                    আমি একজন ওয়েব ডেভেলপার, আইটি ও নেটওয়ার্কিং উৎসাহী এবং ডিজিটাল ক্রিয়েটর। আধুনিক ও রেসপন্সিভ ওয়েব অ্যাপ্লিকেশন, কাস্টম ড্যাশবোর্ড এবং সৃজনশীল ডিজিটাল সল্যুশন তৈরি করতে ভালোবাসি।
+                    আমি একজন ওয়েব ডেভেলপার এবং আইটি উৎসাহী। আধুনিক ও রেসপন্সিভ ওয়েব অ্যাপ্লিকেশন তৈরি এবং ডিজিটাল সল্যুশন নিয়ে কাজ করতে ভালোবাসি।
                 </p>
                 <div class="hero-actions">
-                    <a href="#projects" class="btn-primary">
+                    <a href="#contact" class="btn-primary">
                         <span>আমার কাজ দেখুন</span>
                         <i data-lucide="arrow-right" size="16"></i>
-                    </a>
-                    <a href="https://github.com/JihaD123007" target="_blank" class="btn-outline">
-                        <i data-lucide="github" size="16"></i>
-                        <span>GitHub প্রোফাইল</span>
                     </a>
                 </div>
             </div>
 
             <div class="hero-image-wrapper">
                 <div class="hero-image-frame">
-                    <!-- আপনার রিপোজিটরিতে থাকা ছবিটি স্বয়ংক্রিয়ভাবে লোড হবে -->
+                    <!-- আপনার ছবিটি রিপোজিটরিতে থাকলে স্বয়ংক্রিয়ভাবে লোড হবে -->
                     <img src="assets/images/profile-portrait.jpg" onerror="this.src='assets/images/profile-avatar.jpg'" alt="Riadul Ferdous Jihad">
                 </div>
             </div>
         </section>
 
-        <!-- About & Bento Section -->
+        <!-- About & Support Grid -->
         <section id="about">
             <div class="section-header">
                 <span>পরিচিতি</span>
@@ -508,126 +474,55 @@
                     <div class="bento-icon"><i data-lucide="user"></i></div>
                     <h3>সংক্ষিপ্ত বিবরণ</h3>
                     <p>
-                        কুষ্টিয়া, বাংলাদেশে বসবাসরত একজন প্রযুক্তিপ্রেমী তরুণ। কম্পিউটার ভোকেশনাল ট্রেড থেকে মাধ্যমিক সম্পন্ন করার পাশাপাশি ওয়েব ডেভেলপমেন্ট, ডেটা ম্যানেজমেন্ট, নেটওয়ার্ক কনফিগারেশন এবং এআই টুলস নিয়ে নিয়মিত কাজ করছি।
+                        কুষ্টিয়া, বাংলাদেশে বসবাসরত একজন প্রযুক্তিপ্রেমী তরুণ। মাধ্যমিক শেষ করে কম্পিউটার ভোকেশনাল ট্রেডে পড়াশোনা করার পাশাপাশি ওয়েব ডেভেলপমেন্ট, ডেটা ম্যানেজমেন্ট এবং নেটওয়ার্ক কনফিগারেশন নিয়ে নিয়মিত কাজ করছি।
                     </p>
                 </div>
 
                 <div class="glass-card bento-item">
-                    <div class="bento-icon"><i data-lucide="map-pin"></i></div>
-                    <h3>অবস্থান</h3>
-                    <p>কুষ্টিয়া, খুলনা বিভাগ, বাংলাদেশ। রিমোট এবং লোকাল প্রজেক্টের জন্য উন্মুক্ত।</p>
-                </div>
-
-                <div class="glass-card bento-item" id="skills">
                     <div class="bento-icon"><i data-lucide="code-2"></i></div>
-                    <h3>ওয়েব ডেভেলপমেন্ট</h3>
-                    <div class="skills-wrap">
-                        <span class="skill-tag">HTML5</span>
-                        <span class="skill-tag">CSS3</span>
-                        <span class="skill-tag">JavaScript</span>
-                        <span class="skill-tag">Git & GitHub</span>
-                        <span class="skill-tag">Vercel</span>
-                    </div>
-                </div>
-
-                <div class="glass-card bento-item bento-wide">
-                    <div class="bento-icon"><i data-lucide="cpu"></i></div>
-                    <h3>অন্যান্য কারিগরি দক্ষতা</h3>
-                    <div class="skills-wrap">
-                        <span class="skill-tag">কম্পিউটার অফিস ও ডেটা এন্ট্রি</span>
-                        <span class="skill-tag">রাউটার ও নেটওয়ার্কিং সেটআপ</span>
-                        <span class="skill-tag">AI প্রম্পট ও ফটো এডিটিং</span>
-                        <span class="skill-tag">Google Sheets ইনভেন্টরি</span>
-                        <span class="skill-tag">UI ড্যাশবোর্ড ডিজাইন</span>
-                    </div>
+                    <h3>দক্ষতা</h3>
+                    <p>HTML5, CSS3, JavaScript, Git & GitHub</p>
                 </div>
             </div>
         </section>
 
-        <!-- Projects Section -->
-        <section id="projects">
+        <!-- Support Section - Professional Support Cards -->
+        <section id="support">
             <div class="section-header">
-                <span>পোর্টফোলিও</span>
-                <h2>নির্বাচিত প্রজেক্টসমূহ</h2>
+                <span>যোগাযোগ</span>
+                <h2>প্রফেশনাল সাপোর্ট মাধ্যম</h2>
             </div>
-            <div class="projects-grid">
-                <div class="glass-card project-card">
-                    <div>
-                        <div class="project-top">
-                            <div class="bento-icon" style="margin:0;"><i data-lucide="layout-dashboard"></i></div>
-                            <div class="project-links">
-                                <a href="https://github.com/JihaD123007" target="_blank" title="Source Code"><i data-lucide="github" size="20"></i></a>
-                                <a href="#" target="_blank" title="Live Demo"><i data-lucide="external-link" size="20"></i></a>
-                            </div>
-                        </div>
-                        <h3>OmniDesk Desktop Suite</h3>
-                        <p>সিঙ্গেল-ফাইল HTML, CSS এবং JavaScript দিয়ে তৈরি একটি আধুনিক ডার্ক গ্লাসমর্ফিক ইউটিলিটি ও অফিস ড্যাশবোর্ড স্যুট।</p>
-                    </div>
-                    <div class="skills-wrap">
-                        <span class="skill-tag">HTML/CSS</span>
-                        <span class="skill-tag">JavaScript</span>
-                        <span class="skill-tag">Glassmorphism</span>
-                    </div>
-                </div>
-
-                <div class="glass-card project-card">
-                    <div>
-                        <div class="project-top">
-                            <div class="bento-icon" style="margin:0;"><i data-lucide="globe"></i></div>
-                            <div class="project-links">
-                                <a href="https://github.com/JihaD123007" target="_blank" title="Source Code"><i data-lucide="github" size="20"></i></a>
-                                <a href="#" target="_blank" title="Live Demo"><i data-lucide="external-link" size="20"></i></a>
-                            </div>
-                        </div>
-                        <h3>পার্সোনাল পোর্টফোলিও ওয়েবসাইট</h3>
-                        <p>GitHub Pages-এ হোস্ট করা সম্পূর্ণ রেসপন্সিভ ব্যক্তিগত পোর্টফোলিও ওয়েবসাইট, যেখানে প্রজেক্ট ও দক্ষতার বিবরণ তুলে ধরা হয়েছে।</p>
-                    </div>
-                    <div class="skills-wrap">
-                        <span class="skill-tag">Responsive UI</span>
-                        <span class="skill-tag">GitHub Pages</span>
-                    </div>
-                </div>
-
-                <div class="glass-card project-card">
-                    <div>
-                        <div class="project-top">
-                            <div class="bento-icon" style="margin:0;"><i data-lucide="database"></i></div>
-                            <div class="project-links">
-                                <a href="#" title="Details"><i data-lucide="folder-open" size="20"></i></a>
-                            </div>
-                        </div>
-                        <h3>রিটেইল ইনভেন্টরি সিস্টেম</h3>
-                        <p>পণ্যের কোড, ক্রয়মূল্য ও বিক্রয়মূল্য সহজে হিসাব রাখার জন্য কাস্টমাইজড ডিজিটাল ইনভেন্টরি ও ডেটা ম্যানেজমেন্ট সল্যুশন।</p>
-                    </div>
-                    <div class="skills-wrap">
-                        <span class="skill-tag">Data Entry</span>
-                        <span class="skill-tag">Google Sheets</span>
-                    </div>
-                </div>
+            <div class="support-grid">
+                <button class="support-card" onclick="location.href='https://t.me/yourusername'">
+                    <div class="support-icon"><i data-lucide="telegram" size="24"></i></div>
+                    <h4>Telegram</h4>
+                    <p>ব্যক্তিগত সাপোর্ট</p>
+                </button>
+                <button class="support-card" style="background: var(--accent-secondary);" onclick="location.href='https://t.me/yourgroup'">
+                    <div class="support-icon"><i data-lucide="users" size="24"></i></div>
+                    <h4>Telegram Group</h4>
+                    <p>গ্রুপে কথা বলুন</p>
+                </button>
+                <button class="support-card" onclick="location.href='https://wa.me/yournumber'">
+                    <div class="support-icon"><i data-lucide="message-square" size="24"></i></div>
+                    <h4>WhatsApp</h4>
+                    <p>সরাসরি চ্যাট করুন</p>
+                </button>
             </div>
         </section>
 
         <!-- Contact Section -->
         <section id="contact">
-            <div class="glass-card contact-box">
-                <h2>একসাথে কাজ করতে চান?</h2>
-                <p>যেকোনো ওয়েব ডিজাইন, ডেটা এন্ট্রি বা প্রজেক্ট সংক্রান্ত আলোচনার জন্য নিচের মাধ্যমগুলোতে যোগাযোগ করতে পারেন।</p>
-                <a href="mailto:your-email@example.com" class="btn-primary">
-                    <i data-lucide="mail" size="18"></i>
-                    <span>ইমেইল পাঠান</span>
+            <div class="glass-card contact-box social-row">
+                <a href="https://github.com/JihaD123007" target="_blank" class="social-btn" title="GitHub">
+                    <i data-lucide="github" size="20"></i>
                 </a>
-
-                <div class="social-row">
-                    <a href="https://github.com/JihaD123007" target="_blank" class="social-btn" title="GitHub">
-                        <i data-lucide="github" size="20"></i>
-                    </a>
-                    <a href="#" target="_blank" class="social-btn" title="Facebook">
-                        <i data-lucide="facebook" size="20"></i>
-                    </a>
-                    <a href="#" target="_blank" class="social-btn" title="LinkedIn">
-                        <i data-lucide="linkedin" size="20"></i>
-                    </a>
-                </div>
+                <a href="#" target="_blank" class="social-btn" title="Facebook">
+                    <i data-lucide="facebook" size="20"></i>
+                </a>
+                <a href="#" target="_blank" class="social-btn" title="LinkedIn">
+                    <i data-lucide="linkedin" size="20"></i>
+                </a>
             </div>
         </section>
     </main>
@@ -643,4 +538,5 @@
         lucide.createIcons();
     </script>
 </body>
-</html>
+    </html>
+    
