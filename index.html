@@ -1,278 +1,1266 @@
-<!-- START: Ultra-Modern Social Media Section -->
-<section id="social-media-section" class="social-section">
-    <div class="social-container">
-        <!-- Section Header -->
-        <div class="social-header">
-            <span class="social-subtitle-tag">CONNECT WITH ME</span>
-            <h2>সোসাল মিডিয়ায় যুক্ত হোন</h2>
-            <p>আমার অনলাইন প্রফাইলগুলো ভিজিট করুন এবং সরাসরি যোগাযোগ করুন।</p>
-        </div>
+jihad-chat-bot/
+├── package.json
+├── .env
+├── .gitignore
+├── server.js
+└── public/
+    ├── index.html
+    ├── styles.css
+    ├── app.js
+    ├── manifest.json
+    └── sw.js
+{
+  "name": "jihad-chat-bot",
+  "version": "1.0.0",
+  "description": "Personal AI Assistant powered by Google Gemini",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google/genai": "^0.1.2",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "multer": "^1.4.5-lts.1"
+  }
+}
+PORT=3000
+GEMINI_API_KEY=আপনার_GEMINI_API_KEY_এখানে_দিন
+ADMIN_PASSWORD=আপনার_পছন্দের_শক্তিশালী_পাসওয়ার্ড_দিন
+SESSION_SECRET=jihad_secret_key_9876543210_random_string_secure
+NODE_ENV=production
+node_modules/
+.env
+.DS_Store
+require('dotenv').config();
+const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const multer = require('multer');
+const crypto = require('crypto');
+const path = require('path');
+const { GoogleGenAI } = require('@google/genai');
 
-        <!-- Social Cards Grid -->
-        <div class="social-grid">
-            
-            <!-- Facebook Card -->
-            <div class="social-card facebook-card" onclick="openSocialLink('facebook')">
-                <div class="card-glow"></div>
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i data-lucide="facebook"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>Facebook</h3>
-                        <p>Follow Me on Facebook</p>
-                    </div>
-                    <button class="social-btn">
-                        <span>Visit Profile</span>
-                        <i data-lucide="arrow-right" size="16"></i>
-                    </button>
-                </div>
-            </div>
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-            <!-- TikTok Card -->
-            <div class="social-card tiktok-card" onclick="openSocialLink('tiktok')">
-                <div class="card-glow"></div>
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i data-lucide="video"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>TikTok</h3>
-                        <p>Follow Me on TikTok</p>
-                    </div>
-                    <button class="social-btn">
-                        <span>Watch Videos</span>
-                        <i data-lucide="arrow-right" size="16"></i>
-                    </button>
-                </div>
-            </div>
+if (!process.env.GEMINI_API_KEY || !process.env.ADMIN_PASSWORD || !process.env.SESSION_SECRET) {
+    console.error("FATAL: Missing GEMINI_API_KEY, ADMIN_PASSWORD, or SESSION_SECRET in .env");
+    process.exit(1);
+}
 
-            <!-- WhatsApp Card -->
-            <div class="social-card whatsapp-card" onclick="openSocialLink('whatsapp')">
-                <div class="card-glow"></div>
-                <div class="card-content">
-                    <div class="icon-box">
-                        <i data-lucide="message-circle"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>WhatsApp</h3>
-                        <p>Let's Connect on WhatsApp</p>
-                    </div>
-                    <button class="social-btn">
-                        <span>Message Me</span>
-                        <i data-lucide="arrow-right" size="16"></i>
-                    </button>
-                </div>
-            </div>
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(express.static(path.join(__dirname, 'public')));
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 15 * 1024 * 1024 }
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: 'অনেকবার ভুল চেষ্টা করা হয়েছে। ১৫ মিনিট পর আবার চেষ্টা করুন।' }
+});
+
+const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 30,
+    message: { error: 'অনুগ্রহ করে একটু ধীরে মেসেজ পাঠান।' }
+});
+
+const requireAuth = (req, res, next) => {
+    const token = req.signedCookies.jihad_session;
+    if (!token || token !== 'authorized_jihad_user') {
+        return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+    }
+    next();
+};
+
+app.get('/api/auth/status', (req, res) => {
+    const isAuthenticated = req.signedCookies.jihad_session === 'authorized_jihad_user';
+    res.json({ authenticated: isAuthenticated });
+});
+
+app.post('/api/auth/login', authLimiter, (req, res) => {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'পাসওয়ার্ড দিন।' });
+
+    const inputBuf = Buffer.from(password);
+    const adminBuf = Buffer.from(process.env.ADMIN_PASSWORD);
+
+    if (inputBuf.length === adminBuf.length && crypto.timingSafeEqual(inputBuf, adminBuf)) {
+        res.cookie('jihad_session', 'authorized_jihad_user', {
+            httpOnly: true,
+            signed: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        return res.json({ success: true });
+    }
+
+    return res.status(401).json({ error: 'ভুল পাসওয়ার্ড!' });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('jihad_session');
+    res.json({ success: true });
+});
+
+app.post('/api/chat', requireAuth, apiLimiter, upload.single('file'), async (req, res) => {
+    try {
+        const { message, history, model, useSearch } = req.body;
+        const parsedHistory = history ? JSON.parse(history) : [];
+        const selectedModel = model || 'gemini-2.5-flash';
+
+        if (!message && !req.file) {
+            return res.status(400).json({ error: 'মেসেজ অথবা ফাইল দিন।' });
+        }
+
+        const contents = parsedHistory.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text }]
+        }));
+
+        const currentParts = [];
+        if (req.file) {
+            currentParts.push({
+                inlineData: {
+                    data: req.file.buffer.toString('base64'),
+                    mimeType: req.file.mimetype
+                }
+            });
+        }
+        if (message) {
+            currentParts.push({ text: message });
+        }
+
+        contents.push({ role: 'user', parts: currentParts });
+
+        const config = {
+            systemInstruction: "You are Jihad Chat Bot, a private, highly intelligent personal AI assistant exclusively for Riadul Ferdous Jihad. Communicate fluently in both English and Bengali depending on the user's language. Provide clear, accurate, well-structured answers using Markdown."
+        };
+
+        if (useSearch === 'true') {
+            config.tools = [{ googleSearch: {} }];
+        }
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        const responseStream = await ai.models.generateContentStream({
+            model: selectedModel,
+            contents: contents,
+            config: config
+        });
+
+        for await (const chunk of responseStream) {
+            if (chunk.text) {
+                res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+            }
+        }
+
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+
+    } catch (error) {
+        console.error('Gemini API Error:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ error: error.message || 'AI রেসপন্স তৈরি করতে সমস্যা হয়েছে।' });
+        } else {
+            res.write(`data: ${JSON.stringify({ error: error.message || 'Stream interrupted.' })}\n\n`);
+            res.end();
+        }
+    }
+});
+
+app.post('/api/generate-image', requireAuth, apiLimiter, async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        if (!prompt) return res.status(400).json({ error: 'ছবির বর্ণনা (Prompt) দিন।' });
+
+        const response = await ai.models.generateImages({
+            model: 'imagen-3.0-generate-002',
+            prompt: prompt,
+            config: {
+                numberOfImages: 1,
+                outputMimeType: 'image/jpeg',
+                aspectRatio: '1:1'
+            }
+        });
+
+        const base64Image = response.generatedImages[0].image.imageBytes;
+        res.json({ image: `data:image/jpeg;base64,${base64Image}` });
+    } catch (error) {
+        console.error('Imagen Error:', error);
+        res.status(500).json({ error: error.message || 'ছবি তৈরি করা সম্ভব হয়নি (API টিয়ার চেক করুন)।' });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Jihad Chat Bot running on http://localhost:${PORT}`);
+});
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0a1f">
+    <title>Jihad Chat Bot — Personal AI Assistant</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div id="authScreen" class="auth-container">
+        <div class="auth-card">
+            <div class="brand-badge"><i class="fa-solid fa-sparkles"></i></div>
+            <h1>Jihad Chat Bot</h1>
+            <p>Private Personal AI Assistant</p>
+            <form id="loginForm">
+                <input type="password" id="passwordInput" placeholder="Enter Private Access Password" required autocomplete="current-password">
+                <button type="submit" id="loginBtn">Unlock Assistant</button>
+            </form>
+            <p id="authError" class="error-text"></p>
         </div>
     </div>
-</section>
 
-<!-- Lucide Icons CDN (if not already loaded) -->
-<script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MAIN APP SHELL -->
+    <div id="appShell" class="app-shell hidden">
+        <div id="sidebarBackdrop" class="sidebar-backdrop hidden"></div>
 
-<style>
-    /* Social Media Section Styles */
-    .social-section {
-        padding: 90px 20px;
-        position: relative;
-        overflow: hidden;
-        font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <button id="newChatBtn" class="new-chat-btn">
+                    <i class="fa-solid fa-plus"></i> New Chat
+                </button>
+                <button id="closeSidebarBtn" class="icon-btn mobile-only" aria-label="Close Sidebar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="chat-history-label">Conversations</div>
+            <div id="chatList" class="chat-list"></div>
+
+            <div class="sidebar-footer">
+                <button id="installPwaBtn" class="footer-btn hidden">
+                    <i class="fa-solid fa-download"></i> Install App
+                </button>
+                <button id="themeToggleBtn" class="footer-btn">
+                    <i class="fa-solid fa-sun"></i> <span>Light Mode</span>
+                </button>
+                <button id="logoutBtn" class="footer-btn danger">
+                    <i class="fa-solid fa-right-from-bracket"></i> Lock & Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="main-area">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button id="toggleSidebarBtn" class="icon-btn" aria-label="Toggle Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <span class="app-title">Jihad Chat Bot</span>
+                </div>
+
+                <div class="topbar-controls">
+                    <select id="modelSelect" class="model-select" title="Select Gemini Model">
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast)</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (Reasoning)</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- Messages / Welcome Container -->
+            <div id="chatContainer" class="chat-container">
+                <div id="welcomeScreen" class="welcome-screen">
+                    <div class="welcome-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h2>How can I help you today?</h2>
+                    <p class="welcome-sub">Ask in English or Bengali, analyze documents, write code, or generate images.</p>
+                    <div class="prompt-grid">
+                        <button class="prompt-card" data-prompt="Write a clean, responsive HTML/CSS dashboard layout.">
+                            <i class="fa-solid fa-code"></i>
+                            <span>Build a clean web UI component</span>
+                        </button>
+                        <button class="prompt-card" data-prompt="আমার আজকের কাজের জন্য একটি সুন্দর সময়সূচী তৈরি করে দাও।">
+                            <i class="fa-solid fa-language"></i>
+                            <span>বাংলায় দৈনন্দিন কাজের রুটিন তৈরি করো</span>
+                        </button>
+                        <button class="prompt-card" data-prompt="Summarize the key points of the document I am uploading.">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span>Analyze & summarize a PDF or image</span>
+                        </button>
+                        <button class="prompt-card" data-prompt="/image A futuristic dark purple AI command center, cinematic lighting">
+                            <i class="fa-solid fa-image"></i>
+                            <span>Generate an AI concept image</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="messagesList" class="messages-list"></div>
+            </div>
+
+            <!-- Input Area -->
+            <footer class="input-wrapper">
+                <div id="attachmentPreview" class="attachment-preview hidden">
+                    <span id="attachmentName"></span>
+                    <button id="removeAttachmentBtn" type="button"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="input-box">
+                    <input type="file" id="fileInput" accept="image/*,application/pdf" hidden>
+                    <button id="attachBtn" class="icon-btn" title="Attach Image or PDF">
+                        <i class="fa-solid fa-paperclip"></i>
+                    </button>
+                    <button id="searchToggleBtn" class="icon-btn" title="Toggle Web Search Grounding">
+                        <i class="fa-solid fa-globe"></i>
+                    </button>
+                    <button id="voiceInputBtn" class="icon-btn" title="Voice Input (Speech-to-Text)">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+
+                    <textarea id="messageInput" rows="1" placeholder="Message Jihad Chat Bot... (Type /image to generate images)"></textarea>
+
+                    <button id="sendBtn" class="send-btn" title="Send Message">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                </div>
+                <div class="input-hint">
+                    <span id="searchStatusText">Web Search: Off</span> • Press Enter to send, Shift+Enter for new line
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="/app.js"></script>
+</body>
+</html>
+:root {
+    --bg-primary: #0b0816;
+    --bg-secondary: #130e24;
+    --bg-tertiary: #1d1636;
+    --text-primary: #f3f0ff;
+    --text-secondary: #a59ec4;
+    --accent: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --accent-glow: rgba(139, 92, 246, 0.25);
+    --border: rgba(255, 255, 255, 0.09);
+    --user-bubble: linear-gradient(135deg, #6d28d9, #4c1d95);
+    --ai-bubble: #16112b;
+    --danger: #ef4444;
+}
+
+html.light {
+    --bg-primary: #f8f7fc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #ede9fe;
+    --text-primary: #1e1b4b;
+    --text-secondary: #6b7280;
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
+    --accent-glow: rgba(124, 58, 237, 0.15);
+    --border: rgba(0, 0, 0, 0.08);
+    --user-bubble: linear-gradient(135deg, #7c3aed, #5b21b6);
+    --ai-bubble: #ffffff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+body { background: var(--bg-primary); color: var(--text-primary); height: 100dvh; overflow: hidden; }
+.hidden { display: none !important; }
+
+.auth-container {
+    height: 100dvh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at top, #2e1065, var(--bg-primary) 70%); padding: 1rem;
+}
+.auth-card {
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px;
+    padding: 2.5rem 2rem; width: 100%; max-width: 380px; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+.brand-badge {
+    width: 56px; height: 56px; margin: 0 auto 1rem; border-radius: 16px;
+    background: var(--user-bubble); display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: #fff; box-shadow: 0 8px 20px var(--accent-glow);
+}
+.auth-card h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.auth-card p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.auth-card input {
+    width: 100%; padding: 0.85rem 1rem; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg-primary); color: var(--text-primary); margin-bottom: 1rem; outline: none;
+}
+.auth-card input:focus { border-color: var(--accent); }
+.auth-card button {
+    width: 100%; padding: 0.85rem; border-radius: 12px; border: none; background: var(--accent);
+    color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s;
+}
+.auth-card button:hover { background: var(--accent-hover); }
+.error-text { color: var(--danger); font-size: 0.85rem; margin-top: 0.75rem; }
+
+.app-shell { display: flex; height: 100dvh; width: 100vw; position: relative; }
+
+.sidebar {
+    width: 270px; background: var(--bg-secondary); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 1rem; transition: transform 0.25s ease; z-index: 50;
+}
+.sidebar.collapsed { display: none; }
+.sidebar-header { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.new-chat-btn {
+    flex: 1; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg-tertiary); color: var(--text-primary); font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: 0.2s;
+}
+.new-chat-btn:hover { border-color: var(--accent); }
+.chat-history-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+.chat-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.35rem; }
+.chat-item {
+    display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.75rem;
+    border-radius: 10px; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); transition: 0.15s;
+}
+.chat-item:hover, .chat-item.active { background: var(--bg-tertiary); color: var(--text-primary); }
+.chat-item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.chat-item-actions { display: flex; gap: 0.35rem; opacity: 0.7; }
+.chat-item-actions button { background: none; border: none; color: inherit; cursor: pointer; padding: 2px 4px; }
+.chat-item-actions button:hover { color: var(--accent); }
+
+.sidebar-footer { border-top: 1px solid var(--border); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.footer-btn {
+    background: none; border: none; color: var(--text-secondary); padding: 0.6rem 0.75rem;
+    border-radius: 10px; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem;
+}
+.footer-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.footer-btn.danger:hover { color: var(--danger); }
+
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg-primary); }
+.topbar {
+    height: 60px; border-bottom: 1px solid var(--border); padding: 0 1rem;
+    display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary);
+}
+.topbar-left { display: flex; align-items: center; gap: 0.75rem; }
+.app-title { font-weight: 700; font-size: 1.05rem; }
+.model-select {
+    background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border);
+    padding: 0.45rem 0.75rem; border-radius: 10px; font-size: 0.85rem; outline: none;
+}
+
+.chat-container { flex: 1; overflow-y: auto; padding: 1.5rem 1rem; scroll-behavior: smooth; }
+.welcome-screen {
+    max-width: 680px; margin: 4vh auto 0; text-align: center; padding: 1rem;
+}
+.welcome-icon {
+    width: 60px; height: 60px; border-radius: 18px; background: var(--user-bubble);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;
+    font-size: 1.6rem; color: #fff; box-shadow: 0 10px 25px var(--accent-glow);
+}
+.welcome-screen h2 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+.welcome-sub { color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; }
+.prompt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; text-align: left; }
+.prompt-card {
+    background: var(--bg-secondary); border: 1px solid var(--border); padding: 1rem;
+    border-radius: 14px; color: var(--text-primary); cursor: pointer; display: flex;
+    align-items: center; gap: 0.75rem; transition: 0.2s; font-size: 0.9rem;
+}
+.prompt-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.prompt-card i { color: var(--accent); font-size: 1.1rem; }
+
+.messages-list { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem; }
+.message { display: flex; flex-direction: column; max-width: 88%; animation: fadeIn 0.2s ease; }
+.message.user { align-self: flex-end; }
+.message.model { align-self: flex-start; width: 100%; max-width: 100%; }
+
+.bubble {
+    padding: 0.95rem 1.2rem; border-radius: 18px; line-height: 1.6; font-size: 0.95rem;
+    overflow-wrap: break-word;
+}
+.message.user .bubble { background: var(--user-bubble); color: #fff; border-bottom-right-radius: 4px; }
+.message.model .bubble { background: var(--ai-bubble); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+
+.bubble pre { background: #1e1e2e; padding: 0.85rem; border-radius: 10px; overflow-x: auto; margin: 0.75rem 0; }
+.bubble code { font-family: 'Fira Code', monospace; font-size: 0.85rem; }
+.bubble p { margin-bottom: 0.65rem; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin-left: 1.25rem; margin-bottom: 0.65rem; }
+.bubble img.generated-img { max-width: 100%; border-radius: 12px; margin-top: 0.5rem; }
+
+.msg-actions { display: flex; gap: 0.5rem; margin-top: 0.35rem; padding: 0 0.25rem; }
+.message.user .msg-actions { justify-content: flex-end; }
+.msg-action-btn {
+    background: none; border: none; color: var(--text-secondary); font-size: 0.78rem;
+    cursor: pointer; display: flex; align-items: center; gap: 0.3rem; padding: 2px 6px; border-radius: 6px;
+}
+.msg-action-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.typing-dots span {
+    display: inline-block; width: 7px; height: 7px; background: var(--accent); border-radius: 50%;
+    margin-right: 4px; animation: bounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+.input-wrapper { padding: 0.75rem 1rem 1rem; background: var(--bg-primary); border-top: 1px solid var(--border); }
+.attachment-preview {
+    max-width: 820px; margin: 0 auto 0.5rem; background: var(--bg-tertiary); padding: 0.45rem 0.85rem;
+    border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;
+}
+.attachment-preview button { background: none; border: none; color: var(--danger); cursor: pointer; }
+.input-box {
+    max-width: 820px; margin: 0 auto; background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 16px; padding: 0.45rem 0.6rem; display: flex; align-items: flex-end; gap: 0.35rem;
+}
+.input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.icon-btn {
+    background: none; border: none; color: var(--text-secondary); width: 36px; height: 36px;
+    border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.icon-btn:hover, .icon-btn.active { background: var(--bg-tertiary); color: var(--accent); }
+.icon-btn.recording { color: var(--danger); animation: pulse 1s infinite; }
+
+textarea {
+    flex: 1; background: transparent; border: none; color: var(--text-primary); resize: none;
+    padding: 0.5rem; font-size: 0.95rem; max-height: 150px; outline: none; line-height: 1.4;
+}
+.send-btn {
+    width: 36px; height: 36px; border-radius: 10px; border: none; background: var(--accent);
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.input-hint { max-width: 820px; margin: 0.4rem auto 0; font-size: 0.75rem; color: var(--text-secondary); text-align: center; }
+
+.mobile-only { display: none; }
+
+@media (max-width: 768px) {
+    .sidebar { position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%); display: flex !important; }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40; }
+    .mobile-only { display: flex; }
+    .message { max-width: 95%; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+:root {
+    --bg-primary: #0b0816;
+    --bg-secondary: #130e24;
+    --bg-tertiary: #1d1636;
+    --text-primary: #f3f0ff;
+    --text-secondary: #a59ec4;
+    --accent: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --accent-glow: rgba(139, 92, 246, 0.25);
+    --border: rgba(255, 255, 255, 0.09);
+    --user-bubble: linear-gradient(135deg, #6d28d9, #4c1d95);
+    --ai-bubble: #16112b;
+    --danger: #ef4444;
+}
+
+html.light {
+    --bg-primary: #f8f7fc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #ede9fe;
+    --text-primary: #1e1b4b;
+    --text-secondary: #6b7280;
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
+    --accent-glow: rgba(124, 58, 237, 0.15);
+    --border: rgba(0, 0, 0, 0.08);
+    --user-bubble: linear-gradient(135deg, #7c3aed, #5b21b6);
+    --ai-bubble: #ffffff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+body { background: var(--bg-primary); color: var(--text-primary); height: 100dvh; overflow: hidden; }
+.hidden { display: none !important; }
+
+.auth-container {
+    height: 100dvh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at top, #2e1065, var(--bg-primary) 70%); padding: 1rem;
+}
+.auth-card {
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px;
+    padding: 2.5rem 2rem; width: 100%; max-width: 380px; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+.brand-badge {
+    width: 56px; height: 56px; margin: 0 auto 1rem; border-radius: 16px;
+    background: var(--user-bubble); display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: #fff; box-shadow: 0 8px 20px var(--accent-glow);
+}
+.auth-card h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.auth-card p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.auth-card input {
+    width: 100%; padding: 0.85rem 1rem; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg-primary); color: var(--text-primary); margin-bottom: 1rem; outline: none;
+}
+.auth-card input:focus { border-color: var(--accent); }
+.auth-card button {
+    width: 100%; padding: 0.85rem; border-radius: 12px; border: none; background: var(--accent);
+    color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s;
+}
+.auth-card button:hover { background: var(--accent-hover); }
+.error-text { color: var(--danger); font-size: 0.85rem; margin-top: 0.75rem; }
+
+.app-shell { display: flex; height: 100dvh; width: 100vw; position: relative; }
+
+.sidebar {
+    width: 270px; background: var(--bg-secondary); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 1rem; transition: transform 0.25s ease; z-index: 50;
+}
+.sidebar.collapsed { display: none; }
+.sidebar-header { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.new-chat-btn {
+    flex: 1; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg-tertiary); color: var(--text-primary); font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: 0.2s;
+}
+.new-chat-btn:hover { border-color: var(--accent); }
+.chat-history-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+.chat-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.35rem; }
+.chat-item {
+    display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 0.75rem;
+    border-radius: 10px; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); transition: 0.15s;
+}
+.chat-item:hover, .chat-item.active { background: var(--bg-tertiary); color: var(--text-primary); }
+.chat-item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.chat-item-actions { display: flex; gap: 0.35rem; opacity: 0.7; }
+.chat-item-actions button { background: none; border: none; color: inherit; cursor: pointer; padding: 2px 4px; }
+.chat-item-actions button:hover { color: var(--accent); }
+
+.sidebar-footer { border-top: 1px solid var(--border); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.footer-btn {
+    background: none; border: none; color: var(--text-secondary); padding: 0.6rem 0.75rem;
+    border-radius: 10px; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem;
+}
+.footer-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.footer-btn.danger:hover { color: var(--danger); }
+
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg-primary); }
+.topbar {
+    height: 60px; border-bottom: 1px solid var(--border); padding: 0 1rem;
+    display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary);
+}
+.topbar-left { display: flex; align-items: center; gap: 0.75rem; }
+.app-title { font-weight: 700; font-size: 1.05rem; }
+.model-select {
+    background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border);
+    padding: 0.45rem 0.75rem; border-radius: 10px; font-size: 0.85rem; outline: none;
+}
+
+.chat-container { flex: 1; overflow-y: auto; padding: 1.5rem 1rem; scroll-behavior: smooth; }
+.welcome-screen {
+    max-width: 680px; margin: 4vh auto 0; text-align: center; padding: 1rem;
+}
+.welcome-icon {
+    width: 60px; height: 60px; border-radius: 18px; background: var(--user-bubble);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;
+    font-size: 1.6rem; color: #fff; box-shadow: 0 10px 25px var(--accent-glow);
+}
+.welcome-screen h2 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+.welcome-sub { color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; }
+.prompt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; text-align: left; }
+.prompt-card {
+    background: var(--bg-secondary); border: 1px solid var(--border); padding: 1rem;
+    border-radius: 14px; color: var(--text-primary); cursor: pointer; display: flex;
+    align-items: center; gap: 0.75rem; transition: 0.2s; font-size: 0.9rem;
+}
+.prompt-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.prompt-card i { color: var(--accent); font-size: 1.1rem; }
+
+.messages-list { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem; }
+.message { display: flex; flex-direction: column; max-width: 88%; animation: fadeIn 0.2s ease; }
+.message.user { align-self: flex-end; }
+.message.model { align-self: flex-start; width: 100%; max-width: 100%; }
+
+.bubble {
+    padding: 0.95rem 1.2rem; border-radius: 18px; line-height: 1.6; font-size: 0.95rem;
+    overflow-wrap: break-word;
+}
+.message.user .bubble { background: var(--user-bubble); color: #fff; border-bottom-right-radius: 4px; }
+.message.model .bubble { background: var(--ai-bubble); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+
+.bubble pre { background: #1e1e2e; padding: 0.85rem; border-radius: 10px; overflow-x: auto; margin: 0.75rem 0; }
+.bubble code { font-family: 'Fira Code', monospace; font-size: 0.85rem; }
+.bubble p { margin-bottom: 0.65rem; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin-left: 1.25rem; margin-bottom: 0.65rem; }
+.bubble img.generated-img { max-width: 100%; border-radius: 12px; margin-top: 0.5rem; }
+
+.msg-actions { display: flex; gap: 0.5rem; margin-top: 0.35rem; padding: 0 0.25rem; }
+.message.user .msg-actions { justify-content: flex-end; }
+.msg-action-btn {
+    background: none; border: none; color: var(--text-secondary); font-size: 0.78rem;
+    cursor: pointer; display: flex; align-items: center; gap: 0.3rem; padding: 2px 6px; border-radius: 6px;
+}
+.msg-action-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.typing-dots span {
+    display: inline-block; width: 7px; height: 7px; background: var(--accent); border-radius: 50%;
+    margin-right: 4px; animation: bounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+.input-wrapper { padding: 0.75rem 1rem 1rem; background: var(--bg-primary); border-top: 1px solid var(--border); }
+.attachment-preview {
+    max-width: 820px; margin: 0 auto 0.5rem; background: var(--bg-tertiary); padding: 0.45rem 0.85rem;
+    border-radius: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;
+}
+.attachment-preview button { background: none; border: none; color: var(--danger); cursor: pointer; }
+.input-box {
+    max-width: 820px; margin: 0 auto; background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 16px; padding: 0.45rem 0.6rem; display: flex; align-items: flex-end; gap: 0.35rem;
+}
+.input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.icon-btn {
+    background: none; border: none; color: var(--text-secondary); width: 36px; height: 36px;
+    border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.icon-btn:hover, .icon-btn.active { background: var(--bg-tertiary); color: var(--accent); }
+.icon-btn.recording { color: var(--danger); animation: pulse 1s infinite; }
+
+textarea {
+    flex: 1; background: transparent; border: none; color: var(--text-primary); resize: none;
+    padding: 0.5rem; font-size: 0.95rem; max-height: 150px; outline: none; line-height: 1.4;
+}
+.send-btn {
+    width: 36px; height: 36px; border-radius: 10px; border: none; background: var(--accent);
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.input-hint { max-width: 820px; margin: 0.4rem auto 0; font-size: 0.75rem; color: var(--text-secondary); text-align: center; }
+
+.mobile-only { display: none; }
+
+@media (max-width: 768px) {
+    .sidebar { position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%); display: flex !important; }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40; }
+    .mobile-only { display: flex; }
+    .message { max-width: 95%; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+let conversations = JSON.parse(localStorage.getItem('jihad_chats') || '[]');
+let currentChatId = null;
+let selectedFile = null;
+let useSearch = false;
+let isGenerating = false;
+let deferredPrompt = null;
+
+const authScreen = document.getElementById('authScreen');
+const appShell = document.getElementById('appShell');
+const loginForm = document.getElementById('loginForm');
+const passwordInput = document.getElementById('passwordInput');
+const authError = document.getElementById('authError');
+
+const sidebar = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const chatList = document.getElementById('chatList');
+const welcomeScreen = document.getElementById('welcomeScreen');
+const messagesList = document.getElementById('messagesList');
+const chatContainer = document.getElementById('chatContainer');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const fileInput = document.getElementById('fileInput');
+const attachmentPreview = document.getElementById('attachmentPreview');
+const attachmentName = document.getElementById('attachmentName');
+const searchToggleBtn = document.getElementById('searchToggleBtn');
+const searchStatusText = document.getElementById('searchStatusText');
+const voiceInputBtn = document.getElementById('voiceInputBtn');
+const modelSelect = document.getElementById('modelSelect');
+
+marked.setOptions({
+    highlight: function(code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+            return hljs.highlight(code, { language: lang }).value;
+        }
+        return hljs.highlightAuto(code).value;
+    },
+    breaks: true
+});
+
+async function checkAuth() {
+    try {
+        const res = await fetch('/api/auth/status');
+        const data = await res.json();
+        if (data.authenticated) {
+            showApp();
+        } else {
+            authScreen.classList.remove('hidden');
+            appShell.classList.add('hidden');
+        }
+    } catch {
+        authError.textContent = 'সার্ভারের সাথে সংযোগ স্থাপন করা যাচ্ছে না।';
+    }
+}
+
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    authError.textContent = '';
+    const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput.value })
+    });
+    const data = await res.json();
+    if (res.ok) {
+        passwordInput.value = '';
+        showApp();
+    } else {
+        authError.textContent = data.error || 'Authentication failed';
+    }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    location.reload();
+});
+
+function showApp() {
+    authScreen.classList.add('hidden');
+    appShell.classList.remove('hidden');
+    renderChatList();
+    if (conversations.length > 0) {
+        loadChat(conversations[0].id);
+    }
+}
+
+function saveChats() {
+    localStorage.setItem('jihad_chats', JSON.stringify(conversations));
+    renderChatList();
+}
+
+function createNewChat() {
+    const newChat = {
+        id: Date.now().toString(),
+        title: 'New Conversation',
+        messages: []
+    };
+    conversations.unshift(newChat);
+    saveChats();
+    loadChat(newChat.id);
+    closeMobileSidebar();
+}
+
+function loadChat(id) {
+    currentChatId = id;
+    const chat = conversations.find(c => c.id === id);
+    if (!chat) return;
+
+    renderChatList();
+    messagesList.innerHTML = '';
+
+    if (chat.messages.length === 0) {
+        welcomeScreen.classList.remove('hidden');
+    } else {
+        welcomeScreen.classList.add('hidden');
+        chat.messages.forEach((msg, index) => appendMessageUI(msg, index));
+        scrollToBottom();
+    }
+}
+
+function renderChatList() {
+    chatList.innerHTML = '';
+    conversations.forEach(chat => {
+        const div = document.createElement('div');
+        div.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
+        div.innerHTML = `
+            <span class="chat-item-title">${escapeHtml(chat.title)}</span>
+            <div class="chat-item-actions">
+                <button class="rename-btn" title="Rename"><i class="fa-solid fa-pen"></i></button>
+                <button class="delete-btn" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+        div.addEventListener('click', (e) => {
+            if (e.target.closest('.rename-btn')) {
+                const newTitle = prompt('নতুন নাম দিন:', chat.title);
+                if (newTitle && newTitle.trim()) {
+                    chat.title = newTitle.trim();
+                    saveChats();
+                }
+                return;
+            }
+            if (e.target.closest('.delete-btn')) {
+                conversations = conversations.filter(c => c.id !== chat.id);
+                if (currentChatId === chat.id) {
+                    currentChatId = null;
+                    messagesList.innerHTML = '';
+                    welcomeScreen.classList.remove('hidden');
+                }
+                saveChats();
+                return;
+            }
+            loadChat(chat.id);
+            closeMobileSidebar();
+        });
+        chatList.appendChild(div);
+    });
+}
+
+async function sendMessage(overrideText = null) {
+    if (isGenerating) return;
+    const text = overrideText !== null ? overrideText : messageInput.value.trim();
+    if (!text && !selectedFile) return;
+
+    if (!currentChatId) createNewChat();
+    const chat = conversations.find(c => c.id === currentChatId);
+
+    if (chat.messages.length === 0 && text) {
+        chat.title = text.slice(0, 32) + (text.length > 32 ? '...' : '');
     }
 
-    .social-container {
-        max-width: 1140px;
-        margin: 0 auto;
+    const userMsg = {
+        role: 'user',
+        text: text || `[Attached: ${selectedFile.name}]`
+    };
+    chat.messages.push(userMsg);
+    welcomeScreen.classList.add('hidden');
+    appendMessageUI(userMsg, chat.messages.length - 1);
+
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+    const fileToSend = selectedFile;
+    clearAttachment();
+
+    isGenerating = true;
+    sendBtn.disabled = true;
+    scrollToBottom();
+
+    if (text.toLowerCase().startsWith('/image ')) {
+        await handleImageGeneration(chat, text.slice(7).trim());
+        return;
     }
 
-    .social-header {
-        text-align: center;
-        margin-bottom: 50px;
-    }
+    const aiMsg = { role: 'model', text: '' };
+    chat.messages.push(aiMsg);
+    const bubbleEl = appendMessageUI(aiMsg, chat.messages.length - 1, true);
 
-    .social-subtitle-tag {
-        color: #a855f7;
-        font-size: 0.85rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        display: inline-block;
-        margin-bottom: 10px;
-        padding: 6px 16px;
-        background: rgba(168, 85, 247, 0.1);
-        border: 1px solid rgba(168, 85, 247, 0.2);
-        border-radius: 50px;
-    }
+    try {
+        const formData = new FormData();
+        formData.append('message', text);
+        formData.append('history', JSON.stringify(chat.messages.slice(0, -2)));
+        formData.append('model', modelSelect.value);
+        formData.append('useSearch', useSearch);
+        if (fileToSend) formData.append('file', fileToSend);
 
-    .social-header h2 {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 12px;
-        letter-spacing: -0.5px;
-    }
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            body: formData
+        });
 
-    .social-header p {
-        color: #94a3b8;
-        font-size: 1rem;
-        max-width: 500px;
-        margin: 0 auto;
-    }
+        if (response.status === 401) {
+            location.reload();
+            return;
+        }
 
-    /* Grid Layout */
-    .social-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
-    }
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Request failed');
+        }
 
-    /* Premium Card Design */
-    .social-card {
-        position: relative;
-        background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
-        border: 1px solid rgba(168, 85, 247, 0.2);
-        border-radius: 24px;
-        padding: 32px 24px;
-        cursor: pointer;
-        overflow: hidden;
-        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease;
-    }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
 
-    /* Neon Purple Glow Effect behind cards */
-    .card-glow {
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 150px;
-        height: 150px;
-        background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, rgba(0,0,0,0) 70%);
-        border-radius: 50%;
-        opacity: 0.6;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-    }
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-    .social-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        border-color: rgba(168, 85, 247, 0.6);
-        box-shadow: 0 25px 50px -10px rgba(168, 85, 247, 0.25), 0 0 30px rgba(168, 85, 247, 0.2);
-    }
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n\n');
 
-    .social-card:hover .card-glow {
-        opacity: 1;
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.error) throw new Error(data.error);
+                    if (data.text) {
+                        fullText += data.text;
+                        aiMsg.text = fullText;
+                        bubbleEl.innerHTML = marked.parse(fullText);
+                        scrollToBottom();
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        aiMsg.text = `⚠️ **Error:** ${error.message}`;
+        bubbleEl.innerHTML = marked.parse(aiMsg.text);
+    } finally {
+        isGenerating = false;
+        sendBtn.disabled = false;
+        saveChats();
     }
+}
 
-    .card-content {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        height: 100%;
+async function handleImageGeneration(chat, prompt) {
+    const aiMsg = { role: 'model', text: 'ছবি তৈরি হচ্ছে...' };
+    chat.messages.push(aiMsg);
+    const bubbleEl = appendMessageUI(aiMsg, chat.messages.length - 1, true);
+
+    try {
+        const res = await fetch('/api/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        aiMsg.image = data.image;
+        aiMsg.text = `Generated image for: *${prompt}*`;
+        bubbleEl.innerHTML = `${marked.parse(aiMsg.text)}<img src="${data.image}" class="generated-img" alt="Generated AI Art">`;
+    } catch (err) {
+        aiMsg.text = `⚠️ **Image Generation Error:** ${err.message}`;
+        bubbleEl.innerHTML = marked.parse(aiMsg.text);
+    } finally {
+        isGenerating = false;
+        sendBtn.disabled = false;
+        saveChats();
+        scrollToBottom();
     }
+}
 
-    /* Floating Icon Box */
-    .icon-box {
-        width: 64px;
-        height: 64px;
-        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.5);
-        animation: floatIcon 3s ease-in-out infinite;
-    }
+function appendMessageUI(msg, index, isTyping = false) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `message ${msg.role}`;
 
-    @keyframes floatIcon {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-6px); }
-    }
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
 
-    .card-info h3 {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 6px;
-    }
-
-    .card-info p {
-        color: #94a3b8;
-        font-size: 0.92rem;
-        margin-bottom: 28px;
-    }
-
-    /* Action Button */
-    .social-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #e2e8f0;
-        padding: 10px 20px;
-        border-radius: 50px;
-        font-size: 0.88rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: auto;
-    }
-
-    .social-card:hover .social-btn {
-        background: #a855f7;
-        color: #fff;
-        border-color: #a855f7;
-        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
-        gap: 12px;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 992px) {
-        .social-grid {
-            grid-template-columns: repeat(2, 1fr);
+    if (isTyping && !msg.text) {
+        bubble.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+    } else if (msg.role === 'user') {
+        bubble.textContent = msg.text;
+    } else {
+        bubble.innerHTML = marked.parse(msg.text || '');
+        if (msg.image) {
+            bubble.innerHTML += `<img src="${msg.image}" class="generated-img" alt="Generated AI Art">`;
         }
     }
 
-    @media (max-width: 680px) {
-        .social-grid {
-            grid-template-columns: 1fr;
-        }
-        .social-section {
-            padding: 60px 16px;
-        }
-        .social-header h2 {
-            font-size: 1.8rem;
-        }
-    }
-</style>
+    const actions = document.createElement('div');
+    actions.className = 'msg-actions';
 
-<script>
-    // SINGLE CONFIGURATION SECTION FOR SOCIAL LINKS
-    // সহজে এইখান থেকে লিংক পরিবর্তন করতে পারবেন
-    const socialLinksConfig = {
-        facebook: "https://www.facebook.com/yourprofile", // আপনার ফেসবুক প্রোফাইল লিংক দিন
-        tiktok: "https://www.tiktok.com/@yourprofile",     // আপনার টিকটক প্রফাইল লিংক দিন
-        whatsapp: "https://wa.me/8801700000000"             // আপনার হোয়াটসঅ্যাপ নম্বর বা লিংক দিন
+    if (msg.role === 'model') {
+        actions.innerHTML = `
+            <button class="msg-action-btn copy-btn"><i class="fa-regular fa-copy"></i> Copy</button>
+            <button class="msg-action-btn speak-btn"><i class="fa-solid fa-volume-high"></i> Listen</button>
+            <button class="msg-action-btn regen-btn"><i class="fa-solid fa-rotate-right"></i> Regenerate</button>
+        `;
+        actions.querySelector('.copy-btn').onclick = () => navigator.clipboard.writeText(msg.text);
+        actions.querySelector('.speak-btn').onclick = () => speakText(msg.text);
+        actions.querySelector('.regen-btn').onclick = () => regenerateResponse(index);
+    } else {
+        actions.innerHTML = `
+            <button class="msg-action-btn edit-btn"><i class="fa-solid fa-pen"></i> Edit</button>
+        `;
+        actions.querySelector('.edit-btn').onclick = () => editAndResend(index);
+    }
+
+    wrapper.appendChild(bubble);
+    wrapper.appendChild(actions);
+    messagesList.appendChild(wrapper);
+    return bubble;
+}
+
+function regenerateResponse(aiIndex) {
+    if (isGenerating) return;
+    const chat = conversations.find(c => c.id === currentChatId);
+    if (!chat || aiIndex < 1) return;
+    const lastUserText = chat.messages[aiIndex - 1].text;
+    chat.messages = chat.messages.slice(0, aiIndex - 1);
+    loadChat(chat.id);
+    sendMessage(lastUserText);
+}
+
+function editAndResend(userIndex) {
+    if (isGenerating) return;
+    const chat = conversations.find(c => c.id === currentChatId);
+    if (!chat) return;
+    const edited = prompt('মেসেজ এডিট করুন:', chat.messages[userIndex].text);
+    if (edited && edited.trim()) {
+        chat.messages = chat.messages.slice(0, userIndex);
+        loadChat(chat.id);
+        sendMessage(edited.trim());
+    }
+}
+
+function speakText(text) {
+    if (!('speechSynthesis' in window)) return alert('এই ব্রাউজারে ভয়েস সাপোর্ট নেই।');
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[#*`]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    window.speechSynthesis.speak(utterance);
+}
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.interimResults = false;
+
+    voiceInputBtn.addEventListener('click', () => {
+        voiceInputBtn.classList.add('recording');
+        recognition.start();
+    });
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        messageInput.value += (messageInput.value ? ' ' : '') + transcript;
     };
 
-    // Function to handle safe external redirection
-    function openSocialLink(platform) {
-        const url = socialLinksConfig[platform];
-        if (url) {
-            window.open(url, '_blank', 'noopener,noreferrer');
-        }
-    }
+    recognition.onend = () => voiceInputBtn.classList.remove('recording');
+    recognition.onerror = () => voiceInputBtn.classList.remove('recording');
+} else {
+    voiceInputBtn.style.display = 'none';
+}
 
-    // Initialize Lucide Icons for this section
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
+document.getElementById('attachBtn').onclick = () => fileInput.click();
+fileInput.onchange = () => {
+    if (fileInput.files[0]) {
+        selectedFile = fileInput.files[0];
+        attachmentName.textContent = `📎 ${selectedFile.name}`;
+        attachmentPreview.classList.remove('hidden');
     }
-</script>
-<!-- END: Ultra-Modern Social Media Section -->
+};
+
+function clearAttachment() {
+    selectedFile = null;
+    fileInput.value = '';
+    attachmentPreview.classList.add('hidden');
+}
+document.getElementById('removeAttachmentBtn').onclick = clearAttachment;
+
+searchToggleBtn.onclick = () => {
+    useSearch = !useSearch;
+    searchToggleBtn.classList.toggle('active', useSearch);
+    searchStatusText.textContent = `Web Search: ${useSearch ? 'On' : 'Off'}`;
+};
+
+messageInput.addEventListener('input', () => {
+    messageInput.style.height = 'auto';
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
+});
+
+messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+sendBtn.onclick = () => sendMessage();
+document.getElementById('newChatBtn').onclick = createNewChat;
+
+document.querySelectorAll('.prompt-card').forEach(card => {
+    card.onclick = () => sendMessage(card.dataset.prompt);
+});
+
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+themeToggleBtn.onclick = () => {
+    const isLight = document.documentElement.classList.toggle('light');
+    themeToggleBtn.innerHTML = isLight
+        ? '<i class="fa-solid fa-moon"></i> <span>Dark Mode</span>'
+        : '<i class="fa-solid fa-sun"></i> <span>Light Mode</span>';
+};
+
+document.getElementById('toggleSidebarBtn').onclick = () => {
+    if (window.innerWidth <= 768) {
+        sidebar.classList.add('open');
+        sidebarBackdrop.classList.remove('hidden');
+    } else {
+        sidebar.classList.toggle('collapsed');
+    }
+};
+
+function closeMobileSidebar() {
+    sidebar.classList.remove('open');
+    sidebarBackdrop.classList.add('hidden');
+}
+document.getElementById('closeSidebarBtn').onclick = closeMobileSidebar;
+sidebarBackdrop.onclick = closeMobileSidebar;
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installPwaBtn').classList.remove('hidden');
+});
+
+document.getElementById('installPwaBtn').onclick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt = null;
+    document.getElementById('installPwaBtn').classList.add('hidden');
+};
+
+function scrollToBottom() {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+checkAuth();
+{
+  "name": "Jihad Chat Bot — Personal AI Assistant",
+  "short_name": "Jihad AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0816",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/4712/4712035.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+const CACHE_NAME = 'jihad-ai-shell-v1';
+const ASSETS = ['/', '/styles.css', '/app.js', '/manifest.json'];
+
+self.addEventListener('install', (e) => {
+    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+});
+
+self.addEventListener('fetch', (e) => {
+    if (e.request.url.includes('/api/')) return;
+    e.respondWith(
+        fetch(e.request).catch(() => caches.match(e.request))
+    );
+});
+const CACHE_NAME = 'jihad-ai-shell-v1';
+const ASSETS = ['/', '/styles.css', '/app.js', '/manifest.json'];
+
+self.addEventListener('install', (e) => {
+    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+});
+
+self.addEventListener('fetch', (e) => {
+    if (e.request.url.includes('/api/')) return;
+    e.respondWith(
+        fetch(e.request).catch(() => caches.match(e.request))
+    );
+});
+        
